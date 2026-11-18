@@ -9,8 +9,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import java.nio.ByteBuffer
 
 class MainActivity : ComponentActivity() {
     private var pcIpAddress by mutableStateOf("Not Connected")
+    private var pcIpInput by mutableStateOf("")
     private var statusLog by mutableStateOf("SykesLink Android Engine Ready.\n")
     private val PORT = 50555
     private val DISCOVERY_PORT = 50556
@@ -59,6 +62,18 @@ class MainActivity : ComponentActivity() {
 
                         Button(onClick = { discoverPC() }, modifier = Modifier.fillMaxWidth()) {
                             Text("Auto-Discover PC on Wi-Fi")
+                        }
+
+                        OutlinedTextField(
+                            value = pcIpInput,
+                            onValueChange = { pcIpInput = it.trim() },
+                            label = { Text("PC IP address (shown in PC app)") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Button(onClick = { connectToPCByIp() }, modifier = Modifier.fillMaxWidth()) {
+                            Text("Connect to PC by IP")
                         }
 
                         Button(
@@ -118,7 +133,30 @@ class MainActivity : ComponentActivity() {
                 }
                 socket.close()
             } catch (e: Exception) {
-                log("Discovery failed: ${e.localizedMessage}")
+                log("Auto-discovery failed: ${e.localizedMessage}. Enter the PC Host IP below and tap Connect to PC by IP.")
+            }
+        }
+    }
+
+    private fun connectToPCByIp() {
+        val address = pcIpInput.trim()
+        if (address.isBlank()) {
+            ioScope.launch { log("Enter the Host IP shown in the PC app.") }
+            return
+        }
+
+        ioScope.launch {
+            try {
+                log("Checking PC connection at $address:$PORT...")
+                Socket().use { socket ->
+                    socket.connect(java.net.InetSocketAddress(address, PORT), 3000)
+                }
+                withContext(Dispatchers.Main) {
+                    pcIpAddress = address
+                }
+                log("Connected to PC at $address")
+            } catch (e: Exception) {
+                log("Could not connect to $address:$PORT: ${e.localizedMessage}. Check the PC IP, Wi-Fi, and firewall.")
             }
         }
     }
