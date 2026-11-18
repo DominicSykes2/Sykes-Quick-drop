@@ -1,4 +1,4 @@
-name: Build SykesLink Releases (EXE + APK)
+name: Build Drop Link Releases (EXE + APK)
 
 on:
   push:
@@ -25,13 +25,13 @@ jobs:
 
       - name: Build Windows Executable with PyInstaller
         run: |
-          pyinstaller --noconsole --onefile --name SykesLink-PC pc/sykes_pc_server.py
+          pyinstaller --noconsole --onefile --name Drop-Link-PC pc/sykes_pc_server.py
 
       - name: Upload Windows Executable Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SykesLink-Windows-EXE
-          path: dist/SykesLink-PC.exe
+          name: Drop-Link-Windows-EXE
+          path: dist/Drop-Link-PC.exe
 
   build-android-apk:
     runs-on: ubuntu-latest
@@ -57,5 +57,5 @@ jobs:
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SykesLink-Android-APK
+          name: Drop-Link-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk

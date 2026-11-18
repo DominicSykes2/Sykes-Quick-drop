@@ -28,11 +28,9 @@ class SykesPCApp(ctk.CTk):
 
         self.local_ip = self.get_local_ip()
 
-        # Layout Setup
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
-        # Header Frame
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         
@@ -42,7 +40,6 @@ class SykesPCApp(ctk.CTk):
         self.ip_label = ctk.CTkLabel(self.header_frame, text=f"Host IP: {self.local_ip} | Port: {PORT}", font=ctk.CTkFont(size=12))
         self.ip_label.pack(side="right", padx=5)
 
-        # Control Panel Frame
         self.control_frame = ctk.CTkFrame(self)
         self.control_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
         
@@ -52,7 +49,6 @@ class SykesPCApp(ctk.CTk):
         self.folder_btn = ctk.CTkButton(self.control_frame, text="Open Received Folder", command=self.open_downloads, fg_color="gray")
         self.folder_btn.pack(side="right", padx=15, pady=15)
 
-        # Activity Logs Frame
         self.log_frame = ctk.CTkFrame(self)
         self.log_frame.grid(row=2, column=0, padx=20, pady=(10, 20), sticky="nsew")
         self.log_frame.grid_columnconfigure(0, weight=1)
@@ -64,7 +60,6 @@ class SykesPCApp(ctk.CTk):
         self.log_box = ctk.CTkTextbox(self.log_frame, state="disabled", font=("Consolas", 11))
         self.log_box.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
 
-        # Start Services
         self.log(f"Initialized Drop Link Server. Saving received items to: {self.downloads_folder}")
         self.start_threads()
 
@@ -81,7 +76,7 @@ class SykesPCApp(ctk.CTk):
 
     def log(self, message):
         self.log_box.configure(state="normal")
-        self.log_box.insert("end", f"[{socket.if_nameindex if hasattr(socket, 'if_nameindex') else 'SYS'}] {message}\n")
+        self.log_box.insert("end", f"[SYS] {message}\n")
         self.log_box.see("end")
         self.log_box.configure(state="disabled")
 
@@ -114,7 +109,6 @@ class SykesPCApp(ctk.CTk):
 
     def handle_incoming_transfer(self, sock, addr):
         try:
-            # Read header size (4 bytes) then JSON header
             raw_len = sock.recv(4)
             if not raw_len:
                 return

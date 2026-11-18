@@ -1,9 +1,15 @@
 package com.sykes.sykeslink
 
+import android.content.ContentValues
+import android.content.pm.PackageManager
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.webkit.MimeTypeMap
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +32,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -47,6 +55,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestLegacyStoragePermissionIfNeeded()
         startReceiverServer()
 
         setContent {
@@ -188,26 +197,100 @@ class MainActivity : ComponentActivity() {
             val json = JSONObject(String(headerBytes, Charsets.UTF_8))
             val filename = json.getString("filename")
             val filesize = json.getLong("filesize")
-
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val file = File(downloadsDir, filename)
-
-            FileOutputStream(file).use { fos ->
-                val buffer = ByteArray(65536)
-                var received = 0L
-                while (received < filesize) {
-                    val read = input.read(buffer)
-                    if (read == -1) break
-                    fos.write(buffer, 0, read)
-                    received += read
-                }
-            }
+            val savedLocation = saveIncomingFile(input, filename, filesize)
             socket.outputStream.write("ACK_SUCCESS".toByteArray())
             socket.close()
 
-            log("Received file saved to Downloads: $filename")
+            log("Received $filename. Saved to $savedLocation")
         } catch (e: Exception) {
             log("Error receiving file: ${e.localizedMessage}")
+        }
+    }
+
+    private fun requestLegacyStoragePermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT in 23..28 &&
+            checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 4101)
+        }
+    }
+
+    private fun saveIncomingFile(input: InputStream, originalFilename: String, filesize: Long): String {
+        val filename = originalFilename.replace("\\", "/").substringAfterLast('/')
+        val extension = filename.substringAfterLast('.', "").lowercase()
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+            ?: "application/octet-stream"
+        val isImage = mimeType.startsWith("image/")
+        val isVideo = mimeType.startsWith("video/")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val collection = when {
+                isImage -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                isVideo -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                else -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            }
+            val relativePath = when {
+                isImage -> "${Environment.DIRECTORY_PICTURES}/Drop Link"
+                isVideo -> "${Environment.DIRECTORY_MOVIES}/Drop Link"
+                else -> "${Environment.DIRECTORY_DOWNLOADS}/Drop Link"
+            }
+            val savedLocation = when {
+                isImage -> "Gallery (Pictures/Drop Link)"
+                isVideo -> "Gallery (Movies/Drop Link)"
+                else -> "Downloads/Drop Link"
+            }
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+            val uri = contentResolver.insert(collection, values)
+                ?: throw IllegalStateException("Android could not create a media-library entry")
+
+            try {
+                val output = contentResolver.openOutputStream(uri, "w")
+                    ?: throw IllegalStateException("Android could not open the destination file")
+                output.use { copyIncomingBytes(input, it, filesize) }
+                val published = ContentValues().apply {
+                    put(MediaStore.MediaColumns.IS_PENDING, 0)
+                }
+                contentResolver.update(uri, published, null, null)
+                return savedLocation
+            } catch (error: Exception) {
+                contentResolver.delete(uri, null, null)
+                throw error
+            }
+        }
+
+        val baseDirectory = when {
+            isImage -> Environment.DIRECTORY_PICTURES
+            isVideo -> Environment.DIRECTORY_MOVIES
+            else -> Environment.DIRECTORY_DOWNLOADS
+        }
+        val directory = File(Environment.getExternalStoragePublicDirectory(baseDirectory), "Drop Link")
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw IllegalStateException("Could not create ${directory.absolutePath}")
+        }
+        val destination = File(directory, filename)
+        FileOutputStream(destination).use { copyIncomingBytes(input, it, filesize) }
+        MediaScannerConnection.scanFile(this, arrayOf(destination.absolutePath), arrayOf(mimeType), null)
+        return when {
+            isImage -> "Gallery (Pictures/Drop Link)"
+            isVideo -> "Gallery (Movies/Drop Link)"
+            else -> "Downloads/Drop Link"
+        }
+    }
+
+    private fun copyIncomingBytes(input: InputStream, output: OutputStream, filesize: Long) {
+        val buffer = ByteArray(65536)
+        var received = 0L
+        while (received < filesize) {
+            val bytesToRead = minOf(buffer.size.toLong(), filesize - received).toInt()
+            val read = input.read(buffer, 0, bytesToRead)
+            if (read == -1) throw IllegalStateException("Transfer ended before the full file arrived")
+            output.write(buffer, 0, read)
+            received += read
         }
     }
 

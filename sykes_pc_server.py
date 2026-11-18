@@ -1,5 +1,5 @@
 """
-SykesLink PC Server © 2026 Dominic Sykes
+Drop Link PC Server (C) Dominic Sykes
 Permanent License Granted.
 """
 import socket
@@ -19,11 +19,11 @@ class SykesPCApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("SykesLink PC Bridge © 2026 Dominic Sykes")
+        self.title("Drop Link PC (C) Dominic Sykes")
         self.geometry("750x550")
         self.minsize(700, 500)
 
-        self.downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads", "SykesLink")
+        self.downloads_folder = os.path.join(os.path.expanduser("~"), "Downloads", "Drop Link")
         os.makedirs(self.downloads_folder, exist_ok=True)
 
         self.local_ip = self.get_local_ip()
@@ -36,7 +36,7 @@ class SykesPCApp(ctk.CTk):
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         
-        self.title_label = ctk.CTkLabel(self.header_frame, text="SykesLink PC Transfer Hub", font=ctk.CTkFont(size=22, weight="bold"))
+        self.title_label = ctk.CTkLabel(self.header_frame, text="Drop Link PC Transfer Hub", font=ctk.CTkFont(size=22, weight="bold"))
         self.title_label.pack(side="left")
 
         self.ip_label = ctk.CTkLabel(self.header_frame, text=f"Host IP: {self.local_ip} | Port: {PORT}", font=ctk.CTkFont(size=12))
@@ -65,7 +65,7 @@ class SykesPCApp(ctk.CTk):
         self.log_box.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
 
         # Start Services
-        self.log(f"Initialized SykesLink Server. Saving received items to: {self.downloads_folder}")
+        self.log(f"Initialized Drop Link Server. Saving received items to: {self.downloads_folder}")
         self.start_threads()
 
     def get_local_ip(self):

@@ -12,3 +12,7 @@ Pushing to `main` automatically compiles and attaches two downloadable artifacts
 
 ## Android-to-PC connection
 If Android auto-discovery times out, copy the `Host IP` shown in the PC app into the Android app's `PC IP address` field and tap **Connect to PC by IP**. The app checks that the PC is reachable before enabling file transfers. Keep both apps open on the same Wi-Fi network and allow Drop Link through Windows Firewall on the Private network.
+
+## Android save locations
+Incoming photos are added to the Android media library under `Pictures/Drop Link`, and videos under `Movies/Drop Link`, so Gallery apps can index them. Other files are saved under `Downloads/Drop Link`.
+
