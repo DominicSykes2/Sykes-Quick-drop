@@ -36,7 +36,7 @@ import java.nio.ByteBuffer
 class MainActivity : ComponentActivity() {
     private var pcIpAddress by mutableStateOf("Not Connected")
     private var pcIpInput by mutableStateOf("")
-    private var statusLog by mutableStateOf("SykesLink Android Engine Ready.\n")
+    private var statusLog by mutableStateOf("Drop Link Android Engine Ready.\n")
     private val PORT = 50555
     private val DISCOVERY_PORT = 50556
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("SykesLink Mobile © 2026", fontSize = 22.sp, style = MaterialTheme.typography.titleLarge)
+                        Text("Drop Link (C) Dominic Sykes", fontSize = 22.sp, style = MaterialTheme.typography.titleLarge)
                         Text("PC Host: $pcIpAddress", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
 
                         Button(onClick = { discoverPC() }, modifier = Modifier.fillMaxWidth()) {

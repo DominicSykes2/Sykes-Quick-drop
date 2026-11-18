@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "SykesLink"
+rootProject.name = "Drop Link"
 include(":app")
