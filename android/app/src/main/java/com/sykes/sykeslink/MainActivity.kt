@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Drop Link (C) Dominic Sykes", fontSize = 22.sp, style = MaterialTheme.typography.titleLarge)
+                        Text("Drop Link", fontSize = 22.sp, style = MaterialTheme.typography.titleLarge)
                         Text("PC Host: $pcIpAddress", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
 
                         Button(onClick = { discoverPC() }, modifier = Modifier.fillMaxWidth()) {
