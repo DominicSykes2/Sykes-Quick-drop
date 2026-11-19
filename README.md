@@ -1,9 +1,9 @@
-# Drop Link (C) Dominic Sykes
+# Drop Link
 
 **Drop Link** is a local-network file transfer app for Windows PC and Android. It supports automatic discovery and a manual IP fallback, with transfers sent directly between devices without a cloud service.
 
-## Permanent License
-(C) Dominic Sykes. All rights reserved. Permanent personal and commercial license granted.
+## Credits
+(C) Dominic Sykes.
 
 ## Automated Builds (GitHub Actions)
 Pushing to `main` automatically compiles and attaches two downloadable artifacts under the **Actions** tab:
@@ -15,4 +15,3 @@ If Android auto-discovery times out, copy the `Host IP` shown in the PC app into
 
 ## Android save locations
 Incoming photos are added to the Android media library under `Pictures/Drop Link`, and videos under `Movies/Drop Link`, so Gallery apps can index them. Other files are saved under `Downloads/Drop Link`.
-
