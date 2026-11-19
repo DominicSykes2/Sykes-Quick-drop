@@ -19,7 +19,7 @@ class SykesPCApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Drop Link PC (C) Dominic Sykes")
+        self.title("Drop Link PC")
         self.geometry("750x550")
         self.minsize(700, 500)
 
